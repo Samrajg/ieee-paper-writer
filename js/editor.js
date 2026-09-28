@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addReferenceBtn = document.getElementById('addReferenceBtn');
     
     const visualPreview = document.getElementById('visualPreview');
+    const statusText = document.querySelector('.header-actions .status');
+
+    let draftId = new URLSearchParams(window.location.search).get('id');
 
     // Data model to store paper content
     let paperData = {
@@ -49,6 +52,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         ]
     };
+
+    if (draftId) {
+        // Load existing draft
+        let allDrafts = JSON.parse(localStorage.getItem('ieee_paper_drafts')) || [];
+        const existingDraft = allDrafts.find(d => d.id === draftId);
+        if (existingDraft) {
+            paperData = existingDraft.paperData;
+        }
+    } else {
+        // Create new draft ID
+        draftId = Date.now().toString();
+        // Update URL without reloading
+        window.history.replaceState({}, '', `editor.html?id=${draftId}`);
+    }
+
+    function saveDraft() {
+        let allDrafts = JSON.parse(localStorage.getItem('ieee_paper_drafts')) || [];
+        const draftIndex = allDrafts.findIndex(d => d.id === draftId);
+        
+        const draftObj = {
+            id: draftId,
+            title: paperData.title,
+            lastModified: new Date().toISOString(),
+            paperData: paperData
+        };
+
+        if (draftIndex !== -1) {
+            allDrafts[draftIndex] = draftObj;
+        } else {
+            allDrafts.push(draftObj);
+        }
+        
+        localStorage.setItem('ieee_paper_drafts', JSON.stringify(allDrafts));
+        
+        if (statusText) {
+            statusText.textContent = 'Saved just now';
+            setTimeout(() => {
+                statusText.textContent = 'Saved';
+            }, 2000);
+        }
+    }
 
     let currentSection = 'title';
     let currentLatexString = '';
@@ -184,6 +228,8 @@ ${getReferencesLatex()}
                 </div>
             </div>
         `;
+        
+        saveDraft();
     }
 
     // Render Author UI
