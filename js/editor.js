@@ -1,16 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sectionItems = document.querySelectorAll('.section-item');
     const currentSectionTitle = document.getElementById('currentSectionTitle');
+    
+    const regularFormGroup1 = document.getElementById('regularFormGroup1');
     const fieldLabel1 = document.getElementById('fieldLabel1');
     const fieldInput1 = document.getElementById('fieldInput1');
+    
+    const regularFormGroup2 = document.getElementById('regularFormGroup2');
     const fieldLabel2 = document.getElementById('fieldLabel2');
     const fieldInput2 = document.getElementById('fieldInput2');
+    
+    const authorsEditor = document.getElementById('authorsEditor');
+    const authorList = document.getElementById('authorList');
+    const addAuthorBtn = document.getElementById('addAuthorBtn');
+    
     const latexOutput = document.getElementById('latexOutput');
 
     // Data model to store paper content
     let paperData = {
         title: "Conference Paper Title*",
-        authors: "\\IEEEauthorblockN{1\\textsuperscript{st} Given Name Surname}\n\\IEEEauthorblockA{\\textit{dept. name of organization (of Aff.)} \\\\\n\\textit{name of organization (of Aff.)}\\\\\nCity, Country \\\\\nemail address or ORCID}",
+        authors: [
+            {
+                name: "Given Name Surname",
+                dept: "dept. name of organization (of Aff.)",
+                org: "name of organization (of Aff.)",
+                city: "City, Country",
+                email: "email address or ORCID"
+            }
+        ],
         abstract: "This document is a model and instructions for \\LaTeX.",
         keywords: "component, formatting, style, styling, insert",
         introduction: "This document is a model and instructions for \\LaTeX.\nPlease observe the conference page limits.",
@@ -23,6 +40,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let currentSection = 'title';
+
+    // Helper to format authors to LaTeX
+    function getAuthorsLatex() {
+        if (paperData.authors.length === 0) return "";
+        
+        return paperData.authors.map((author, index) => {
+            let num = index + 1;
+            let suffix = 'th';
+            if (num === 1) suffix = 'st';
+            else if (num === 2) suffix = 'nd';
+            else if (num === 3) suffix = 'rd';
+            
+            return `\\IEEEauthorblockN{${num}\\textsuperscript{${suffix}} ${author.name}}
+\\IEEEauthorblockA{\\textit{${author.dept}} \\\\
+\\textit{${author.org}}\\\\
+${author.city} \\\\
+${author.email}}`;
+        }).join('\n\\and\n');
+    }
 
     // Update LaTeX display
     function updateLatex() {
@@ -45,7 +81,7 @@ should not be used}
 \\thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\\author{${paperData.authors}}
+\\author{${getAuthorsLatex()}}
 
 \\maketitle
 
@@ -83,15 +119,78 @@ ${paperData.references}
         latexOutput.textContent = latexTemplate;
     }
 
-    // Handle input changes
+    // Render Author UI
+    function renderAuthorUI() {
+        authorList.innerHTML = '';
+        paperData.authors.forEach((author, index) => {
+            const card = document.createElement('div');
+            card.className = 'author-card';
+            
+            card.innerHTML = `
+                <button class="remove-author-btn" data-index="${index}">Remove</button>
+                <div class="form-group">
+                    <label>Author Name</label>
+                    <input type="text" class="form-control author-input" data-field="name" data-index="${index}" value="${author.name}">
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" class="form-control author-input" data-field="dept" data-index="${index}" value="${author.dept}">
+                </div>
+                <div class="form-group">
+                    <label>Organization</label>
+                    <input type="text" class="form-control author-input" data-field="org" data-index="${index}" value="${author.org}">
+                </div>
+                <div class="form-group">
+                    <label>City, Country</label>
+                    <input type="text" class="form-control author-input" data-field="city" data-index="${index}" value="${author.city}">
+                </div>
+                <div class="form-group">
+                    <label>Email or ORCID</label>
+                    <input type="text" class="form-control author-input" data-field="email" data-index="${index}" value="${author.email}">
+                </div>
+            `;
+            authorList.appendChild(card);
+        });
+
+        // Attach event listeners to new inputs
+        document.querySelectorAll('.author-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const index = e.target.getAttribute('data-index');
+                const field = e.target.getAttribute('data-field');
+                paperData.authors[index][field] = e.target.value;
+                updateLatex();
+            });
+        });
+
+        // Attach event listeners to remove buttons
+        document.querySelectorAll('.remove-author-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = e.target.getAttribute('data-index');
+                paperData.authors.splice(index, 1);
+                renderAuthorUI();
+                updateLatex();
+            });
+        });
+    }
+
+    addAuthorBtn.addEventListener('click', () => {
+        paperData.authors.push({
+            name: "New Author",
+            dept: "Department",
+            org: "Organization",
+            city: "City, Country",
+            email: "email"
+        });
+        renderAuthorUI();
+        updateLatex();
+    });
+
+    // Handle input changes for normal fields
     function handleInputChange() {
         if (currentSection === 'title') {
             paperData.title = fieldInput1.value || "Conference Paper Title*";
-            // Ignore description (fieldInput2) for title
-        } else if (currentSection === 'authors') {
-            paperData.authors = fieldInput2.value || "Author Name";
-        } else {
-            paperData[currentSection] = fieldInput2.value || `Your ${currentSection.replace('-', ' ')} goes here.`;
+        } else if (currentSection !== 'authors') {
+            paperData[currentSection] = fieldInput2.value || \`Your \${currentSection.replace('-', ' ')} goes here.\`;
         }
         updateLatex();
     }
@@ -101,7 +200,7 @@ ${paperData.references}
 
     // Initial load: populate form with title
     fieldInput1.value = paperData.title;
-    fieldInput2.parentElement.style.display = 'none';
+    regularFormGroup2.style.display = 'none';
 
     sectionItems.forEach(item => {
         item.addEventListener('click', (e) => {
@@ -119,28 +218,29 @@ ${paperData.references}
 
             // Reset and configure fields based on section
             if (currentSection === 'title') {
-                fieldInput1.parentElement.style.display = 'block';
-                fieldInput2.parentElement.style.display = 'none';
+                regularFormGroup1.style.display = 'block';
+                regularFormGroup2.style.display = 'none';
+                authorsEditor.style.display = 'none';
                 
                 fieldLabel1.textContent = 'Paper Title';
                 fieldInput1.placeholder = 'Enter your IEEE paper title...';
                 fieldInput1.value = paperData.title !== "Conference Paper Title*" ? paperData.title : "";
             } else if (currentSection === 'authors') {
-                fieldInput1.parentElement.style.display = 'none';
-                fieldInput2.parentElement.style.display = 'block';
+                regularFormGroup1.style.display = 'none';
+                regularFormGroup2.style.display = 'none';
+                authorsEditor.style.display = 'block';
                 
-                fieldLabel2.textContent = 'Author Information (LaTeX)';
-                fieldInput2.placeholder = 'Enter author names and affiliations...';
-                fieldInput2.value = paperData.authors;
+                renderAuthorUI();
             } else {
-                fieldInput1.parentElement.style.display = 'none';
-                fieldInput2.parentElement.style.display = 'block';
+                regularFormGroup1.style.display = 'none';
+                regularFormGroup2.style.display = 'block';
+                authorsEditor.style.display = 'none';
                 
-                fieldLabel2.textContent = `${sectionName} Content`;
-                fieldInput2.placeholder = `Enter ${sectionName.toLowerCase()}...`;
+                fieldLabel2.textContent = \`\${sectionName} Content\`;
+                fieldInput2.placeholder = \`Enter \${sectionName.toLowerCase()}...\`;
                 
                 // Set existing value if any
-                const defaultText = `Your ${currentSection.replace('-', ' ')} goes here.`;
+                const defaultText = \`Your \${currentSection.replace('-', ' ')} goes here.\`;
                 fieldInput2.value = paperData[currentSection] !== defaultText ? paperData[currentSection] : "";
             }
         });
@@ -158,7 +258,18 @@ ${paperData.references}
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'paper.tex';
+            
+            // Format filename from title
+            let safeTitle = paperData.title
+                .replace(/[^a-z0-9]/gi, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '')
+                .toLowerCase();
+            if (!safeTitle || safeTitle === 'conference_paper_title') {
+                safeTitle = 'paper';
+            }
+            
+            a.download = \`\${safeTitle}.tex\`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

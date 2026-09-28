@@ -306,3 +306,39 @@ textarea.form-control {
         display: none;
     }
 }
+
+/* Author Cards */
+.author-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+    position: relative;
+}
+
+.author-card .form-group {
+    margin-bottom: 0.75rem;
+}
+
+.author-card .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.remove-author-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.remove-author-btn:hover {
+    background: #fca5a5;
+}

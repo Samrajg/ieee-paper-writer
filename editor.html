@@ -42,14 +42,21 @@
             <div class="editor-content">
                 <h3 id="currentSectionTitle">Title</h3>
                 
-                <div class="form-group">
+                <div class="form-group" id="regularFormGroup1">
                     <label for="fieldInput1" id="fieldLabel1">Paper Title</label>
                     <input type="text" id="fieldInput1" class="form-control" placeholder="Enter your IEEE paper title...">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="regularFormGroup2">
                     <label for="fieldInput2" id="fieldLabel2">Short Description</label>
                     <textarea id="fieldInput2" class="form-control" rows="10" placeholder="Enter a short description of your paper..."></textarea>
+                </div>
+
+                <div class="authors-editor-container" id="authorsEditor" style="display: none;">
+                    <div id="authorList">
+                        <!-- Author inputs will be dynamically inserted here -->
+                    </div>
+                    <button class="btn btn-secondary" id="addAuthorBtn" style="margin-top: 1rem;">+ Add Author</button>
                 </div>
 
 
