@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const referenceList = document.getElementById('referenceList');
     const addReferenceBtn = document.getElementById('addReferenceBtn');
     
-    const latexOutput = document.getElementById('latexOutput');
+    const visualPreview = document.getElementById('visualPreview');
 
     // Data model to store paper content
     let paperData = {
@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let currentSection = 'title';
+    let currentLatexString = '';
 
     // Helper to format authors to LaTeX
     function getAuthorsLatex() {
@@ -82,9 +83,9 @@ ${author.email}}`;
         return `\\begin{thebibliography}{00}\n${refs}\n\\end{thebibliography}`;
     }
 
-    // Update LaTeX display
-    function updateLatex() {
-        const latexTemplate = `\\documentclass[conference]{IEEEtran}
+    // Update internal LaTeX string and visual preview
+    function updateContent() {
+        currentLatexString = `\\documentclass[conference]{IEEEtran}
 \\IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 \\usepackage{cite}
@@ -136,7 +137,53 @@ ${getReferencesLatex()}
 
 \\end{document}`;
 
-        latexOutput.textContent = latexTemplate;
+        // Update Visual HTML Preview
+        let authorsHtml = paperData.authors.map(a => `
+            <div class="vp-author-block">
+                <div class="vp-author-name">${a.name}</div>
+                <div class="vp-author-affil">${a.dept}<br>${a.org}<br>${a.city}<br>${a.email}</div>
+            </div>
+        `).join('');
+
+        let refsHtml = paperData.references.map((r, i) => `
+            <div class="vp-reference-item">[${i + 1}] ${r.authors}, "${r.title}," <i>${r.publication}</i></div>
+        `).join('');
+
+        visualPreview.innerHTML = `
+            <div class="vp-title">${paperData.title}</div>
+            <div class="vp-authors">${authorsHtml}</div>
+            <div class="vp-body">
+                <div class="vp-paragraph">
+                    <span class="vp-abstract-heading">Abstract—</span><span class="vp-abstract-text">${paperData.abstract}</span>
+                </div>
+                <div class="vp-paragraph">
+                    <span class="vp-keywords-heading">IEEE Keywords—</span><span class="vp-keywords-text">${paperData.keywords}</span>
+                </div>
+                
+                <div class="vp-section-heading">I. Introduction</div>
+                <div class="vp-paragraph">${paperData.introduction.replace(/\\n/g, '<br>')}</div>
+                
+                <div class="vp-section-heading">II. Related Work</div>
+                <div class="vp-paragraph">${paperData['related-work'].replace(/\\n/g, '<br>')}</div>
+                
+                <div class="vp-section-heading">III. Methodology</div>
+                <div class="vp-paragraph">${paperData.methodology.replace(/\\n/g, '<br>')}</div>
+                
+                <div class="vp-section-heading">IV. Results</div>
+                <div class="vp-paragraph">${paperData.results.replace(/\\n/g, '<br>')}</div>
+                
+                <div class="vp-section-heading">V. Discussion</div>
+                <div class="vp-paragraph">${paperData.discussion.replace(/\\n/g, '<br>')}</div>
+                
+                <div class="vp-section-heading">VI. Conclusion</div>
+                <div class="vp-paragraph">${paperData.conclusion.replace(/\\n/g, '<br>')}</div>
+                
+                <div class="vp-section-heading">References</div>
+                <div class="vp-references">
+                    ${refsHtml}
+                </div>
+            </div>
+        `;
     }
 
     // Render Author UI
@@ -178,7 +225,7 @@ ${getReferencesLatex()}
                 const index = e.target.getAttribute('data-index');
                 const field = e.target.getAttribute('data-field');
                 paperData.authors[index][field] = e.target.value;
-                updateLatex();
+                updateContent();
             });
         });
 
@@ -188,7 +235,7 @@ ${getReferencesLatex()}
                 const index = e.target.getAttribute('data-index');
                 paperData.authors.splice(index, 1);
                 renderAuthorUI();
-                updateLatex();
+                updateContent();
             });
         });
     }
@@ -202,7 +249,7 @@ ${getReferencesLatex()}
             email: "email"
         });
         renderAuthorUI();
-        updateLatex();
+        updateContent();
     });
 
     // Render Reference UI
@@ -240,7 +287,7 @@ ${getReferencesLatex()}
                 const index = e.target.getAttribute('data-index');
                 const field = e.target.getAttribute('data-field');
                 paperData.references[index][field] = e.target.value;
-                updateLatex();
+                updateContent();
             });
         });
 
@@ -250,7 +297,7 @@ ${getReferencesLatex()}
                 const index = e.target.getAttribute('data-index');
                 paperData.references.splice(index, 1);
                 renderReferenceUI();
-                updateLatex();
+                updateContent();
             });
         });
     }
@@ -264,7 +311,7 @@ ${getReferencesLatex()}
             publication: "Journal/Conference details, Year."
         });
         renderReferenceUI();
-        updateLatex();
+        updateContent();
     });
 
     // Handle input changes for normal fields
@@ -274,7 +321,7 @@ ${getReferencesLatex()}
         } else if (currentSection !== 'authors' && currentSection !== 'references') {
             paperData[currentSection] = fieldInput2.value || `Your ${currentSection.replace('-', ' ')} goes here.`;
         }
-        updateLatex();
+        updateContent();
     }
 
     fieldInput1.addEventListener('input', handleInputChange);
@@ -338,15 +385,14 @@ ${getReferencesLatex()}
         });
     });
 
-    // Initialize the LaTeX block
-    updateLatex();
+    // Initialize content
+    updateContent();
 
     // Download functionality
     const downloadBtn = document.getElementById('downloadBtn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', () => {
-            const latexContent = latexOutput.textContent;
-            const blob = new Blob([latexContent], { type: 'text/plain' });
+            const blob = new Blob([currentLatexString], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
