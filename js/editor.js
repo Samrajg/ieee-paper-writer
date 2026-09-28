@@ -368,4 +368,22 @@ ${getReferencesLatex()}
             URL.revokeObjectURL(url);
         });
     }
+
+    // Preview functionality
+    const previewBtn = document.getElementById('previewBtn');
+    const editorWorkspace = document.querySelector('.editor-workspace');
+    if (previewBtn && editorWorkspace) {
+        previewBtn.addEventListener('click', () => {
+            editorWorkspace.classList.toggle('preview-mode');
+            if (editorWorkspace.classList.contains('preview-mode')) {
+                previewBtn.textContent = 'Exit Preview';
+                previewBtn.classList.remove('btn-secondary');
+                previewBtn.classList.add('btn-primary');
+            } else {
+                previewBtn.textContent = 'Preview';
+                previewBtn.classList.remove('btn-primary');
+                previewBtn.classList.add('btn-secondary');
+            }
+        });
+    }
 });

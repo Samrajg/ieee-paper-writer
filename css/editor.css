@@ -342,3 +342,14 @@ textarea.form-control {
 .remove-author-btn:hover, .remove-reference-btn:hover {
     background: #fca5a5;
 }
+
+/* Preview Mode */
+.editor-workspace.preview-mode .paper-sidebar,
+.editor-workspace.preview-mode .field-editor {
+    display: none;
+}
+
+.editor-workspace.preview-mode .latex-panel {
+    width: 100%;
+    border-left: none;
+}
