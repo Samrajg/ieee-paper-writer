@@ -307,8 +307,8 @@ textarea.form-control {
     }
 }
 
-/* Author Cards */
-.author-card {
+/* Author and Reference Cards */
+.author-card, .reference-card {
     background: var(--surface);
     border: 1px solid var(--border);
     padding: 1rem;
@@ -317,15 +317,15 @@ textarea.form-control {
     position: relative;
 }
 
-.author-card .form-group {
+.author-card .form-group, .reference-card .form-group {
     margin-bottom: 0.75rem;
 }
 
-.author-card .form-group:last-child {
+.author-card .form-group:last-child, .reference-card .form-group:last-child {
     margin-bottom: 0;
 }
 
-.remove-author-btn {
+.remove-author-btn, .remove-reference-btn {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
@@ -339,6 +339,6 @@ textarea.form-control {
     font-weight: bold;
 }
 
-.remove-author-btn:hover {
+.remove-author-btn:hover, .remove-reference-btn:hover {
     background: #fca5a5;
 }

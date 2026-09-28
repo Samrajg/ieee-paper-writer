@@ -14,29 +14,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const authorList = document.getElementById('authorList');
     const addAuthorBtn = document.getElementById('addAuthorBtn');
     
+    const referencesEditor = document.getElementById('referencesEditor');
+    const referenceList = document.getElementById('referenceList');
+    const addReferenceBtn = document.getElementById('addReferenceBtn');
+    
     const latexOutput = document.getElementById('latexOutput');
 
     // Data model to store paper content
     let paperData = {
-        title: "Conference Paper Title*",
+        title: "Conference Paper Title",
         authors: [
             {
                 name: "Given Name Surname",
-                dept: "dept. name of organization (of Aff.)",
-                org: "name of organization (of Aff.)",
+                dept: "Department Name",
+                org: "Organization Name",
                 city: "City, Country",
-                email: "email address or ORCID"
+                email: "email@example.com"
             }
         ],
-        abstract: "This document is a model and instructions for \\LaTeX.",
+        abstract: "Your abstract goes here. Briefly summarize your paper.",
         keywords: "component, formatting, style, styling, insert",
-        introduction: "This document is a model and instructions for \\LaTeX.\nPlease observe the conference page limits.",
-        "related-work": "Your related work goes here.",
-        methodology: "Your methodology goes here.",
-        results: "Your results go here.",
-        discussion: "Your discussion goes here.",
-        conclusion: "Your conclusion goes here.",
-        references: "Please number citations consecutively within brackets \\cite{b1}.\n\n\\begin{thebibliography}{00}\n\\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.\n\\end{thebibliography}"
+        introduction: "Your introduction goes here. Explain the background and motivation for your work.",
+        "related-work": "Your related work goes here. Discuss previous research in this area.",
+        methodology: "Your methodology goes here. Explain how you conducted your research.",
+        results: "Your results go here. Present the findings of your study.",
+        discussion: "Your discussion goes here. Interpret the results and their implications.",
+        conclusion: "Your conclusion goes here. Summarize the main points and future work.",
+        references: [
+            {
+                id: "b1",
+                authors: "G. Eason, B. Noble, and I. N. Sneddon",
+                title: "On certain integrals of Lipschitz-Hankel type involving products of Bessel functions",
+                publication: "Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955."
+            }
+        ]
     };
 
     let currentSection = 'title';
@@ -60,6 +71,17 @@ ${author.email}}`;
         }).join('\n\\and\n');
     }
 
+    // Helper to format references to LaTeX
+    function getReferencesLatex() {
+        if (paperData.references.length === 0) return "";
+        
+        const refs = paperData.references.map(ref => {
+            return `\\bibitem{${ref.id}} ${ref.authors}, \`\`${ref.title},'' ${ref.publication}`;
+        }).join('\n');
+        
+        return `\\begin{thebibliography}{00}\n${refs}\n\\end{thebibliography}`;
+    }
+
     // Update LaTeX display
     function updateLatex() {
         const latexTemplate = `\\documentclass[conference]{IEEEtran}
@@ -75,11 +97,7 @@ ${author.email}}`;
     T\\kern-.1667em\\lower.7ex\\hbox{E}\\kern-.125emX}}
 \\begin{document}
 
-\\title{${paperData.title}\\\\
-{\\footnotesize \\textsuperscript{*}Note: Sub-titles are not captured in Xplore and
-should not be used}
-\\thanks{Identify applicable funding agency here. If none, delete this.}
-}
+\\title{${paperData.title}}
 
 \\author{${getAuthorsLatex()}}
 
@@ -112,7 +130,9 @@ ${paperData.discussion}
 ${paperData.conclusion}
 
 \\section*{References}
-${paperData.references}
+Please number citations consecutively within brackets \\cite{b1}.
+
+${getReferencesLatex()}
 
 \\end{document}`;
 
@@ -185,11 +205,73 @@ ${paperData.references}
         updateLatex();
     });
 
+    // Render Reference UI
+    function renderReferenceUI() {
+        referenceList.innerHTML = '';
+        paperData.references.forEach((ref, index) => {
+            const card = document.createElement('div');
+            card.className = 'reference-card';
+            
+            card.innerHTML = `
+                <button class="remove-reference-btn" data-index="${index}">Remove</button>
+                <div class="form-group">
+                    <label>Citation ID (e.g. b1)</label>
+                    <input type="text" class="form-control reference-input" data-field="id" data-index="${index}" value="${ref.id}">
+                </div>
+                <div class="form-group">
+                    <label>Authors</label>
+                    <input type="text" class="form-control reference-input" data-field="authors" data-index="${index}" value="${ref.authors}">
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" class="form-control reference-input" data-field="title" data-index="${index}" value="${ref.title}">
+                </div>
+                <div class="form-group">
+                    <label>Publication Details</label>
+                    <input type="text" class="form-control reference-input" data-field="publication" data-index="${index}" value="${ref.publication}">
+                </div>
+            `;
+            referenceList.appendChild(card);
+        });
+
+        // Attach event listeners to new inputs
+        document.querySelectorAll('.reference-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const index = e.target.getAttribute('data-index');
+                const field = e.target.getAttribute('data-field');
+                paperData.references[index][field] = e.target.value;
+                updateLatex();
+            });
+        });
+
+        // Attach event listeners to remove buttons
+        document.querySelectorAll('.remove-reference-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = e.target.getAttribute('data-index');
+                paperData.references.splice(index, 1);
+                renderReferenceUI();
+                updateLatex();
+            });
+        });
+    }
+
+    addReferenceBtn.addEventListener('click', () => {
+        const newId = \`b\${paperData.references.length + 1}\`;
+        paperData.references.push({
+            id: newId,
+            authors: "Author Names",
+            title: "Paper Title",
+            publication: "Journal/Conference details, Year."
+        });
+        renderReferenceUI();
+        updateLatex();
+    });
+
     // Handle input changes for normal fields
     function handleInputChange() {
         if (currentSection === 'title') {
-            paperData.title = fieldInput1.value || "Conference Paper Title*";
-        } else if (currentSection !== 'authors') {
+            paperData.title = fieldInput1.value || "Conference Paper Title";
+        } else if (currentSection !== 'authors' && currentSection !== 'references') {
             paperData[currentSection] = fieldInput2.value || \`Your \${currentSection.replace('-', ' ')} goes here.\`;
         }
         updateLatex();
@@ -221,20 +303,30 @@ ${paperData.references}
                 regularFormGroup1.style.display = 'block';
                 regularFormGroup2.style.display = 'none';
                 authorsEditor.style.display = 'none';
+                referencesEditor.style.display = 'none';
                 
                 fieldLabel1.textContent = 'Paper Title';
                 fieldInput1.placeholder = 'Enter your IEEE paper title...';
-                fieldInput1.value = paperData.title !== "Conference Paper Title*" ? paperData.title : "";
+                fieldInput1.value = paperData.title !== "Conference Paper Title" ? paperData.title : "";
             } else if (currentSection === 'authors') {
                 regularFormGroup1.style.display = 'none';
                 regularFormGroup2.style.display = 'none';
                 authorsEditor.style.display = 'block';
+                referencesEditor.style.display = 'none';
                 
                 renderAuthorUI();
+            } else if (currentSection === 'references') {
+                regularFormGroup1.style.display = 'none';
+                regularFormGroup2.style.display = 'none';
+                authorsEditor.style.display = 'none';
+                referencesEditor.style.display = 'block';
+                
+                renderReferenceUI();
             } else {
                 regularFormGroup1.style.display = 'none';
                 regularFormGroup2.style.display = 'block';
                 authorsEditor.style.display = 'none';
+                referencesEditor.style.display = 'none';
                 
                 fieldLabel2.textContent = \`\${sectionName} Content\`;
                 fieldInput2.placeholder = \`Enter \${sectionName.toLowerCase()}...\`;
