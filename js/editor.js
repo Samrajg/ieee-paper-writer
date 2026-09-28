@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const visualPreview = document.getElementById('visualPreview');
     const statusText = document.querySelector('.header-actions .status');
+    const navbarTitleInput = document.getElementById('navbarTitleInput');
 
     let draftId = new URLSearchParams(window.location.search).get('id');
 
@@ -65,6 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
         draftId = Date.now().toString();
         // Update URL without reloading
         window.history.replaceState({}, '', `editor.html?id=${draftId}`);
+    }
+    
+    if (navbarTitleInput) {
+        navbarTitleInput.value = paperData.title;
+        navbarTitleInput.addEventListener('input', (e) => {
+            paperData.title = e.target.value;
+            if (currentSection === 'title') {
+                fieldInput1.value = e.target.value;
+            }
+            updateContent();
+        });
     }
 
     function saveDraft() {
@@ -364,6 +376,7 @@ ${getReferencesLatex()}
     function handleInputChange() {
         if (currentSection === 'title') {
             paperData.title = fieldInput1.value || "Conference Paper Title";
+            if (navbarTitleInput) navbarTitleInput.value = paperData.title;
         } else if (currentSection !== 'authors' && currentSection !== 'references') {
             paperData[currentSection] = fieldInput2.value || `Your ${currentSection.replace('-', ' ')} goes here.`;
         }
@@ -436,28 +449,61 @@ ${getReferencesLatex()}
 
     // Download functionality
     const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', () => {
+    const downloadDropdown = document.getElementById('downloadDropdown');
+    const downloadTexBtn = document.getElementById('downloadTexBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+    if (downloadBtn && downloadDropdown) {
+        downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            downloadDropdown.parentElement.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.matches('.dropbtn')) {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => dropdown.classList.remove('show'));
+            }
+        });
+    }
+
+    function getSafeTitle() {
+        let safeTitle = paperData.title
+            .replace(/[^a-z0-9]/gi, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_|_$/g, '')
+            .toLowerCase();
+        if (!safeTitle || safeTitle === 'conference_paper_title') {
+            safeTitle = 'paper';
+        }
+        return safeTitle;
+    }
+
+    if (downloadTexBtn) {
+        downloadTexBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             const blob = new Blob([currentLatexString], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            
-            // Format filename from title
-            let safeTitle = paperData.title
-                .replace(/[^a-z0-9]/gi, '_')
-                .replace(/_+/g, '_')
-                .replace(/^_|_$/g, '')
-                .toLowerCase();
-            if (!safeTitle || safeTitle === 'conference_paper_title') {
-                safeTitle = 'paper';
-            }
-            
-            a.download = `${safeTitle}.tex`;
+            a.download = `${getSafeTitle()}.tex`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        });
+    }
+
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Recompile PDF through latexonline.cc API using GET request with URL encoded text
+            const encodedTex = encodeURIComponent(currentLatexString);
+            const apiUrl = `https://latexonline.cc/compile?text=${encodedTex}`;
+            
+            // Open in a new tab which triggers the PDF compilation and display
+            window.open(apiUrl, '_blank');
         });
     }
 

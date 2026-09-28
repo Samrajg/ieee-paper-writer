@@ -9,11 +9,17 @@
 <body>
     <header class="editor-header">
         <div class="logo">IEEE Paper Writer</div>
-        <div class="paper-title">Untitled Paper</div>
+        <input type="text" id="navbarTitleInput" class="paper-title-input" value="Conference Paper Title">
         <div class="header-actions">
             <span class="status">Saved</span>
             <button class="btn btn-secondary" id="previewBtn">Preview</button>
-            <button class="btn btn-primary" id="downloadBtn">Download</button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropbtn" id="downloadBtn">Download ▼</button>
+                <div class="dropdown-content" id="downloadDropdown">
+                    <a href="#" id="downloadTexBtn">.tex (LaTeX Source)</a>
+                    <a href="#" id="downloadPdfBtn">.pdf (Compiled Document)</a>
+                </div>
+            </div>
         </div>
     </header>
 

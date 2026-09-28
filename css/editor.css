@@ -47,11 +47,28 @@ body {
     width: 15%; /* match sidebar width */
 }
 
-.paper-title {
+.paper-title-input {
     font-weight: 600;
     color: var(--text);
     text-align: center;
     flex-grow: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 1rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+    max-width: 400px;
+}
+
+.paper-title-input:hover {
+    background: var(--secondary);
+}
+
+.paper-title-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
 }
 
 .header-actions {
@@ -375,4 +392,39 @@ textarea.form-control {
 
 .editor-workspace.preview-mode .preview-panel {
     width: 100%;
+}
+
+/* Dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: var(--surface);
+    min-width: 220px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border);
+    margin-top: 0.5rem;
+}
+
+.dropdown-content a {
+    color: var(--text);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.875rem;
+}
+
+.dropdown-content a:hover {
+    background-color: var(--secondary);
+}
+
+.dropdown.show .dropdown-content {
+    display: block;
 }
