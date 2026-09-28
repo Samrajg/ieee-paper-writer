@@ -256,7 +256,7 @@ ${getReferencesLatex()}
     }
 
     addReferenceBtn.addEventListener('click', () => {
-        const newId = \`b\${paperData.references.length + 1}\`;
+        const newId = `b${paperData.references.length + 1}`;
         paperData.references.push({
             id: newId,
             authors: "Author Names",
@@ -272,7 +272,7 @@ ${getReferencesLatex()}
         if (currentSection === 'title') {
             paperData.title = fieldInput1.value || "Conference Paper Title";
         } else if (currentSection !== 'authors' && currentSection !== 'references') {
-            paperData[currentSection] = fieldInput2.value || \`Your \${currentSection.replace('-', ' ')} goes here.\`;
+            paperData[currentSection] = fieldInput2.value || `Your ${currentSection.replace('-', ' ')} goes here.`;
         }
         updateLatex();
     }
@@ -328,11 +328,11 @@ ${getReferencesLatex()}
                 authorsEditor.style.display = 'none';
                 referencesEditor.style.display = 'none';
                 
-                fieldLabel2.textContent = \`\${sectionName} Content\`;
-                fieldInput2.placeholder = \`Enter \${sectionName.toLowerCase()}...\`;
+                fieldLabel2.textContent = `${sectionName} Content`;
+                fieldInput2.placeholder = `Enter ${sectionName.toLowerCase()}...`;
                 
                 // Set existing value if any
-                const defaultText = \`Your \${currentSection.replace('-', ' ')} goes here.\`;
+                const defaultText = `Your ${currentSection.replace('-', ' ')} goes here.`;
                 fieldInput2.value = paperData[currentSection] !== defaultText ? paperData[currentSection] : "";
             }
         });
@@ -361,7 +361,7 @@ ${getReferencesLatex()}
                 safeTitle = 'paper';
             }
             
-            a.download = \`\${safeTitle}.tex\`;
+            a.download = `${safeTitle}.tex`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
