@@ -148,4 +148,21 @@ ${paperData.references}
 
     // Initialize the LaTeX block
     updateLatex();
+
+    // Download functionality
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            const latexContent = latexOutput.textContent;
+            const blob = new Blob([latexContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'paper.tex';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
 });
